@@ -60,6 +60,7 @@ export default function Index() {
   const [sessions, setSessions] = useState<ChatSession[]>(DEMO_SESSIONS);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userName, setUserName] = useState("Пользователь");
 
   const startNewChat = () => {
     const newSession: ChatSession = {
@@ -126,6 +127,7 @@ export default function Index() {
         onNewChat={startNewChat}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        userName={userName}
       />
 
       <main className="flex-1 relative z-10 overflow-hidden">
@@ -148,7 +150,11 @@ export default function Index() {
           />
         )}
         {activePage === "settings" && (
-          <SettingsPage onOpenMenu={() => setSidebarOpen(true)} />
+          <SettingsPage
+            onOpenMenu={() => setSidebarOpen(true)}
+            userName={userName}
+            onUserNameChange={setUserName}
+          />
         )}
       </main>
     </div>

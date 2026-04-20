@@ -7,6 +7,7 @@ interface SidebarProps {
   onNewChat: () => void;
   isOpen: boolean;
   onClose: () => void;
+  userName: string;
 }
 
 const NAV_ITEMS = [
@@ -16,7 +17,7 @@ const NAV_ITEMS = [
   { id: "settings" as Page, icon: "Settings2", label: "Настройки" },
 ];
 
-export default function Sidebar({ activePage, onNavigate, onNewChat, isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ activePage, onNavigate, onNewChat, isOpen, onClose, userName }: SidebarProps) {
   return (
     <>
       {isOpen && (
@@ -107,13 +108,13 @@ export default function Sidebar({ activePage, onNavigate, onNewChat, isOpen, onC
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
           >
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
               style={{ background: "var(--kane-gradient)" }}
             >
-              П
+              {userName.trim().charAt(0).toUpperCase() || "П"}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-foreground truncate">Пользователь</div>
+              <div className="text-sm font-medium text-foreground truncate">{userName || "Пользователь"}</div>
               <div className="text-xs text-muted-foreground">Про-аккаунт</div>
             </div>
             <Icon name="ChevronRight" size={14} className="text-muted-foreground" />

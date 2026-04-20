@@ -3,6 +3,8 @@ import Icon from "@/components/ui/icon";
 
 interface SettingsPageProps {
   onOpenMenu: () => void;
+  userName: string;
+  onUserNameChange: (name: string) => void;
 }
 
 const VOICES = [
@@ -24,7 +26,7 @@ const LANGUAGES = [
   { id: "mixed", label: "Смешанный", flag: "🌐" },
 ];
 
-export default function SettingsPage({ onOpenMenu }: SettingsPageProps) {
+export default function SettingsPage({ onOpenMenu, userName, onUserNameChange }: SettingsPageProps) {
   const [selectedVoice, setSelectedVoice] = useState("friendly");
   const [responseStyle, setResponseStyle] = useState("balanced");
   const [language, setLanguage] = useState("ru");
@@ -66,6 +68,54 @@ export default function SettingsPage({ onOpenMenu }: SettingsPageProps) {
       </div>
 
       <div className="max-w-2xl mx-auto px-5 py-6 space-y-8">
+
+        {/* Profile */}
+        <section className="animate-fade-in">
+          <div className="flex items-center gap-2 mb-4">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "rgba(139,92,246,0.15)" }}
+            >
+              <Icon name="User" size={14} style={{ color: "var(--kane-purple)" }} />
+            </div>
+            <h2 className="font-semibold text-foreground">Профиль</h2>
+          </div>
+          <div
+            className="flex items-center gap-4 p-4 rounded-xl"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0"
+              style={{ background: "var(--kane-gradient)" }}
+            >
+              {userName.trim().charAt(0).toUpperCase() || "П"}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-muted-foreground mb-1.5 mono">Ваше имя</div>
+              <div
+                className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }}
+              >
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={e => onUserNameChange(e.target.value.slice(0, 30))}
+                  className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none min-w-0"
+                  placeholder="Введите ваше имя..."
+                  onFocus={e => {
+                    (e.currentTarget.parentElement as HTMLElement).style.borderColor = "rgba(139,92,246,0.5)";
+                    (e.currentTarget.parentElement as HTMLElement).style.boxShadow = "0 0 0 1px rgba(139,92,246,0.2)";
+                  }}
+                  onBlur={e => {
+                    (e.currentTarget.parentElement as HTMLElement).style.borderColor = "rgba(255,255,255,0.1)";
+                    (e.currentTarget.parentElement as HTMLElement).style.boxShadow = "none";
+                  }}
+                />
+                <span className="text-xs text-muted-foreground mono flex-shrink-0">{userName.length}/30</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Voice & Tone */}
         <section className="animate-fade-in">

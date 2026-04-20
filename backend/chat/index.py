@@ -35,7 +35,11 @@ def handler(event: dict, context) -> dict:
 
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
-        return {"statusCode": 500, "headers": headers, "body": json.dumps({"error": "API key not configured"})}
+        return {
+            "statusCode": 200,
+            "headers": headers,
+            "body": json.dumps({"reply": "⚠️ API-ключ OpenAI не настроен. Добавьте OPENAI_API_KEY в секреты проекта на platform.openai.com/api-keys"}),
+        }
 
     system_prompt = (
         f"Ты — ИИ-ассистент по имени {assistant_name}. "
@@ -66,10 +70,22 @@ def handler(event: dict, context) -> dict:
         method="POST",
     )
 
-    with urllib.request.urlopen(req, timeout=25) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-
-    reply = result["choices"][0]["message"]["content"].strip()
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        reply = result["choices"][0]["message"]["content"].strip()
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode("utf-8")
+        print(f"OpenAI HTTP error {e.code}: {err_body}")
+        if e.code == 401:
+            reply = "⚠️ Неверный API-ключ OpenAI. Проверьте значение OPENAI_API_KEY в настройках проекта."
+        elif e.code == 429:
+            reply = "⚠️ Превышен лимит запросов к OpenAI. Попробуйте через несколько секунд."
+        else:
+            reply = f"⚠️ Ошибка OpenAI ({e.code}). Попробуйте позже."
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        reply = "⚠️ Произошла ошибка при обращении к ИИ. Попробуйте ещё раз."
 
     return {
         "statusCode": 200,

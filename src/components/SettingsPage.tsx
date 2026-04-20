@@ -5,6 +5,16 @@ interface SettingsPageProps {
   onOpenMenu: () => void;
   userName: string;
   onUserNameChange: (name: string) => void;
+  onSave: (name: string) => void;
+}
+
+function loadSetting<T>(key: string, fallback: T): T {
+  try {
+    const v = localStorage.getItem(key);
+    return v !== null ? JSON.parse(v) : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 const VOICES = [
@@ -26,16 +36,27 @@ const LANGUAGES = [
   { id: "mixed", label: "Смешанный", flag: "🌐" },
 ];
 
-export default function SettingsPage({ onOpenMenu, userName, onUserNameChange }: SettingsPageProps) {
-  const [selectedVoice, setSelectedVoice] = useState("friendly");
-  const [responseStyle, setResponseStyle] = useState("balanced");
-  const [language, setLanguage] = useState("ru");
-  const [customName, setCustomName] = useState("Кейн");
-  const [notifications, setNotifications] = useState(true);
-  const [memoryEnabled, setMemoryEnabled] = useState(true);
+export default function SettingsPage({ onOpenMenu, userName, onUserNameChange, onSave }: SettingsPageProps) {
+  const [selectedVoice, setSelectedVoice] = useState(() => loadSetting("kane_voice", "friendly"));
+  const [responseStyle, setResponseStyle] = useState(() => loadSetting("kane_responseStyle", "balanced"));
+  const [language, setLanguage] = useState(() => loadSetting("kane_language", "ru"));
+  const [customName, setCustomName] = useState(() => loadSetting("kane_assistantName", "Кейн"));
+  const [notifications, setNotifications] = useState(() => loadSetting("kane_notifications", true));
+  const [memoryEnabled, setMemoryEnabled] = useState(() => loadSetting("kane_memory", true));
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
+    try {
+      localStorage.setItem("kane_voice", JSON.stringify(selectedVoice));
+      localStorage.setItem("kane_responseStyle", JSON.stringify(responseStyle));
+      localStorage.setItem("kane_language", JSON.stringify(language));
+      localStorage.setItem("kane_assistantName", JSON.stringify(customName));
+      localStorage.setItem("kane_notifications", JSON.stringify(notifications));
+      localStorage.setItem("kane_memory", JSON.stringify(memoryEnabled));
+    } catch (e) {
+      console.warn(e);
+    }
+    onSave(userName);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

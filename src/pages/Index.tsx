@@ -60,7 +60,13 @@ export default function Index() {
   const [sessions, setSessions] = useState<ChatSession[]>(DEMO_SESSIONS);
   const [activeSession, setActiveSession] = useState<ChatSession | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userName, setUserName] = useState("Пользователь");
+  const [userName, setUserName] = useState(() => {
+    try { return localStorage.getItem("kane_userName") || "Пользователь"; } catch { return "Пользователь"; }
+  });
+
+  const handleUserNameChange = (name: string) => {
+    setUserName(name);
+  };
 
   const startNewChat = () => {
     const newSession: ChatSession = {
@@ -153,7 +159,11 @@ export default function Index() {
           <SettingsPage
             onOpenMenu={() => setSidebarOpen(true)}
             userName={userName}
-            onUserNameChange={setUserName}
+            onUserNameChange={handleUserNameChange}
+            onSave={(name) => {
+              setUserName(name);
+              try { localStorage.setItem("kane_userName", name); } catch (e) { console.warn(e); }
+            }}
           />
         )}
       </main>

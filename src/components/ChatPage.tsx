@@ -2,19 +2,13 @@ import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { ChatSession, ChatMessage } from "@/pages/Index";
 
+const CHAT_URL = "https://functions.poehali.dev/57571387-9128-46c1-8c9f-fbaef0ba4338";
+
 interface ChatPageProps {
   session: ChatSession | null;
   onUpdateSession: (session: ChatSession) => void;
   onOpenMenu: () => void;
 }
-
-const DEMO_RESPONSES = [
-  "Отличный вопрос! Давайте разберём это подробно. Начну с ключевых моментов, которые помогут вам лучше понять тему...",
-  "Конечно, помогу! Вот что важно знать по этому поводу: во-первых, стоит учесть контекст задачи. Во-вторых, определить приоритеты...",
-  "Понял вас. Для решения этой задачи рекомендую следующий подход: начните с анализа текущей ситуации, затем сформулируйте цели...",
-  "Хороший вопрос! Если коротко: всё зависит от вашей конкретной ситуации. Но в большинстве случаев лучший путь — это шаг за шагом...",
-  "Конечно! Вот пошаговый план действий специально для вас. Главное — не торопиться и следовать логике процесса...",
-];
 
 function formatText(text: string) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
@@ -38,7 +32,7 @@ export default function ChatPage({ session, onUpdateSession, onOpenMenu }: ChatP
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim() || isTyping) return;
     const userMsg = input.trim();
     setInput("");
@@ -65,22 +59,40 @@ export default function ChatPage({ session, onUpdateSession, onOpenMenu }: ChatP
       messages: updatedMessages,
     };
     onUpdateSession(updatedSession);
-
     setIsTyping(true);
-    setTimeout(() => {
-      const aiText = DEMO_RESPONSES[Math.floor(Math.random() * DEMO_RESPONSES.length)];
+
+    try {
+      const assistantName = (() => {
+        try { return JSON.parse(localStorage.getItem("kane_assistantName") || '"Кейн"'); } catch { return "Кейн"; }
+      })();
+
+      const res = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: updatedMessages, assistantName }),
+      });
+
+      const data = await res.json();
+      const aiText = data.reply || "Извините, не удалось получить ответ. Попробуйте ещё раз.";
+
       const aiMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "ai",
         text: aiText,
         time: `${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`,
       };
-      onUpdateSession({
-        ...updatedSession,
-        messages: [...updatedMessages, aiMsg],
-      });
+      onUpdateSession({ ...updatedSession, messages: [...updatedMessages, aiMsg] });
+    } catch {
+      const errMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "ai",
+        text: "Ошибка соединения. Проверьте интернет и попробуйте снова.",
+        time,
+      };
+      onUpdateSession({ ...updatedSession, messages: [...updatedMessages, errMsg] });
+    } finally {
       setIsTyping(false);
-    }, 1200 + Math.random() * 800);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
